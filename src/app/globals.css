@@ -2,26 +2,171 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --canvas: 251 248 244;
+    --champagne: 201 162 39;
+    --blush: 245 228 226;
+    --ink: 31 26 23;
+    --nav-h: 84px;
+  }
+
+  * {
+    @apply border-ink/10;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink-soft antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  /* Lenis owns the scroll — native smooth would fight it. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  ::selection {
+    background: rgb(201 162 39 / 0.24);
+    color: #1f1a17;
+  }
+
+  ::-webkit-scrollbar {
+    width: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f5eee5;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(201, 162, 39, 0.7), rgba(201, 154, 148, 0.55));
+    border-radius: 99px;
+  }
+
+  /* The custom cursor replaces the native one on precise pointers only. */
+  @media (pointer: fine) {
+    html.has-custom-cursor,
+    html.has-custom-cursor * {
+      cursor: none !important;
+    }
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(138 109 20 / 0.9);
+    outline-offset: 3px;
+    border-radius: 4px;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Frosted white on ivory. On a light page the depth cue has to come from
+     the shadow and the bright top edge, not from a translucent dark fill. */
+  .glass {
+    @apply relative border border-white/80 bg-white/65 backdrop-blur-2xl;
+    box-shadow: 0 24px 70px -30px rgba(90, 66, 45, 0.28),
+      0 2px 10px -4px rgba(90, 66, 45, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  }
+
+  /* Solid card for content that needs to stay readable over busy backdrops. */
+  .card {
+    @apply relative border border-ink/[0.07] bg-surface;
+    box-shadow: 0 20px 60px -32px rgba(90, 66, 45, 0.3), 0 1px 3px rgba(90, 66, 45, 0.05);
+  }
+
+  /* Gradient hairline that lights up on hover, drawn with a masked
+     pseudo-element so it sits above the blur without clipping content. */
+  .glass-edge::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      140deg,
+      rgba(201, 162, 39, 0.85),
+      rgba(201, 154, 148, 0.5) 40%,
+      transparent 70%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  .glass-edge:hover::after,
+  .glass-edge[data-active="true"]::after {
+    opacity: 1;
+  }
+
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(115deg, #8a6d14 0%, #c9a227 34%, #b98f2a 62%, #8a6d14 100%);
+  }
+
+  .eyebrow {
+    @apply text-eyebrow font-semibold uppercase text-champagne-deep;
+  }
+
+  /* Warm paper tooth. Multiply keeps it from washing the ivory out. */
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.32;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E");
+  }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  /* Clipping box for masked word reveals.
+     Display headings run a tight line-height, so a plain `overflow:hidden`
+     box is shorter than the glyph ink and slices the descenders off. The
+     padding extends the clip region; the matching negative margin cancels the
+     effect that padding would otherwise have on the line box. */
+  .mask-line {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-bottom: 0.28em;
+    margin-bottom: -0.28em;
+  }
+
+  .mask-fade-y {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
