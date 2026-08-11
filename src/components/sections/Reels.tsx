@@ -99,7 +99,7 @@ function Reel({ item, index }: { item: Testimonial; index: number }) {
           onClick={togglePlay}
           data-cursor="link"
           aria-label={playing ? "Pause reel" : "Play reel"}
-          className="grid h-9 w-9 place-items-center rounded-full border border-ink/12 bg-white/70 text-ink backdrop-blur-md transition-colors duration-500 hover:border-champagne/70 hover:text-champagne-deep"
+          className="grid h-9 w-9 place-items-center rounded-full border border-ink/[0.12] bg-white/[0.88] text-ink transition-colors duration-500 hover:border-champagne/70 hover:text-champagne-deep"
         >
           {playing ? (
             <Pause className="h-3.5 w-3.5" strokeWidth={1.6} />
@@ -113,9 +113,9 @@ function Reel({ item, index }: { item: Testimonial; index: number }) {
           data-cursor="link"
           aria-label={muted ? "Unmute reel" : "Mute reel"}
           className={cn(
-            "grid h-9 w-9 place-items-center rounded-full border bg-white/70 backdrop-blur-md transition-colors duration-500",
+            "grid h-9 w-9 place-items-center rounded-full border bg-white/[0.88] transition-colors duration-500",
             muted
-              ? "border-ink/12 text-ink hover:border-champagne/70 hover:text-champagne-deep"
+              ? "border-ink/[0.12] text-ink hover:border-champagne/70 hover:text-champagne-deep"
               : "border-champagne/70 bg-champagne/25 text-champagne-deep",
           )}
         >
@@ -127,7 +127,7 @@ function Reel({ item, index }: { item: Testimonial; index: number }) {
         </button>
       </div>
 
-      <span className="absolute left-3.5 top-3.5 rounded-full border border-ink/10 bg-white/70 px-2.5 py-1 text-[10px] tabular-nums tracking-[0.1em] text-ink-soft backdrop-blur-md">
+      <span className="absolute left-3.5 top-3.5 rounded-full border border-ink/10 bg-white/[0.88] px-2.5 py-1 text-[10px] tabular-nums tracking-[0.1em] text-ink-soft">
         {item.duration}
       </span>
 

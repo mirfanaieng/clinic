@@ -43,7 +43,10 @@ export function CartDrawer() {
                 exit="exit"
                 className="fixed inset-y-0 right-0 z-[101] flex w-full max-w-[440px] flex-col border-l border-ink/10 bg-canvas/95 backdrop-blur-2xl"
               >
-                <div className="pointer-events-none absolute -left-20 top-16 h-72 w-72 rounded-full bg-champagne/[0.11] blur-[100px]" />
+                <div
+                  className="glow -left-20 top-16 h-[400px] w-[400px]"
+                  style={{ "--glow": "rgba(201,162,39,0.14)" } as React.CSSProperties}
+                />
 
                 <div className="relative flex items-center justify-between gap-4 border-b border-ink/[0.09] px-6 py-6">
                   <Dialog.Title className="font-display text-xl text-ink">

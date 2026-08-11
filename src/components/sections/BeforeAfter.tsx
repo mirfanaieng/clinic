@@ -60,9 +60,12 @@ export function BeforeAfter() {
   const clip = useTransform(pos, (v) => `inset(0 ${100 - v}% 0 0)`);
   const handleLeft = useMotionTemplate`${pos}%`;
 
-  // Mirrored into state purely so assistive tech sees a live value.
-  const [ariaValue, setAriaValue] = useState(50);
-  useMotionValueEvent(pos, "change", (v) => setAriaValue(Math.round(v)));
+  // Written straight to the DOM rather than held in state. This fires on every
+  // frame of the spring, and routing it through React re-rendered the entire
+  // section — both skin surfaces included — for the whole length of a drag.
+  useMotionValueEvent(pos, "change", (v) => {
+    frameRef.current?.setAttribute("aria-valuenow", String(Math.round(v)));
+  });
 
   const setFromClientX = useCallback(
     (clientX: number) => {
@@ -129,7 +132,7 @@ export function BeforeAfter() {
             data-active={micro}
             className={cn(
               "glass glass-edge inline-flex shrink-0 items-center gap-3 self-start rounded-full py-3 pl-4 pr-6 transition-colors duration-500 lg:self-end",
-              micro && "border-champagne/60 bg-champagne/16",
+              micro && "border-champagne/60 bg-champagne/[0.16]",
             )}
           >
             <span
@@ -167,7 +170,7 @@ export function BeforeAfter() {
             aria-label="Before and after comparison"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={ariaValue}
+            aria-valuenow={50}
             data-cursor="drag"
             data-cursor-label="Drag"
             className="glass relative aspect-[16/11] select-none overflow-hidden rounded-[26px] sm:aspect-[16/9]"
@@ -223,18 +226,21 @@ export function BeforeAfter() {
               <motion.span
                 animate={{ scale: dragging ? 1.12 : 1 }}
                 transition={{ duration: 0.4, ease: LUXE_EASE }}
-                className="absolute left-1/2 top-1/2 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-ink/15 bg-white/75 text-ink backdrop-blur-xl"
+                /* No backdrop-blur here. This node travels with the drag, and a
+                   moving backdrop-filter re-snapshots and re-blurs everything
+                   beneath it on every frame of the gesture. */
+                className="absolute left-1/2 top-1/2 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-ink/15 bg-white/90 text-ink shadow-[0_6px_20px_-8px_rgba(90,66,45,0.5)]"
               >
-                <span className="absolute inset-0 rounded-full bg-champagne/16 blur-lg" />
+                <span className="absolute inset-0 rounded-full bg-champagne/[0.16] blur-lg" />
                 <MoveHorizontal className="relative h-4 w-4" strokeWidth={1.5} />
               </motion.span>
             </motion.div>
 
             {/* Corner labels */}
-            <span className="pointer-events-none absolute left-5 top-5 z-10 rounded-full border border-ink/10 bg-white/72 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-ink-soft backdrop-blur-md">
+            <span className="pointer-events-none absolute left-5 top-5 z-10 rounded-full border border-ink/10 bg-white/85 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-ink-soft">
               Baseline
             </span>
-            <span className="pointer-events-none absolute right-5 top-5 z-10 rounded-full border border-champagne/50 bg-champagne/14 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-champagne-deep backdrop-blur-md">
+            <span className="pointer-events-none absolute right-5 top-5 z-10 rounded-full border border-champagne/50 bg-champagne/25 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-champagne-deep">
               Week {active.window.replace(" weeks", "")}
             </span>
 
@@ -245,7 +251,7 @@ export function BeforeAfter() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.5, ease: LUXE_EASE }}
-                  className="pointer-events-none absolute bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full border border-ink/10 bg-white/75 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink-soft backdrop-blur-md"
+                  className="pointer-events-none absolute bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full border border-ink/10 bg-white/[0.88] px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink-soft"
                 >
                   40× · 1 mm field of view
                 </motion.span>

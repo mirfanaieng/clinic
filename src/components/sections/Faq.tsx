@@ -48,7 +48,10 @@ export function Faq() {
 
   return (
     <section id="faq" className="relative py-32 lg:py-44">
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-[380px] w-[380px] rounded-full bg-champagne/[0.10] blur-[130px]" />
+      <div
+        className="glow bottom-0 left-1/3 h-[520px] w-[520px]"
+        style={{ "--glow": "rgba(201,162,39,0.13)" } as React.CSSProperties}
+      />
 
       <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10">
         <div className="grid gap-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">

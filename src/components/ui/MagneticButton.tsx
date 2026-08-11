@@ -13,7 +13,7 @@ type Variant = "gold" | "ghost" | "champagne";
 const VARIANTS: Record<Variant, string> = {
   gold: "bg-ink text-canvas shadow-lift hover:bg-champagne-deep",
   ghost:
-    "border border-ink/12 bg-white/75 text-ink backdrop-blur-xl hover:border-champagne/70 hover:bg-white",
+    "border border-ink/[0.12] bg-white/[0.88] text-ink hover:border-champagne/70 hover:bg-white",
   champagne: "bg-champagne text-ink hover:bg-champagne-light",
 };
 

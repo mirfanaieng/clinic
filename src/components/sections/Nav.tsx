@@ -61,7 +61,7 @@ export function Nav() {
             className="flex items-center gap-3 text-left"
           >
             <span className="relative grid h-9 w-9 place-items-center rounded-full border border-champagne/55">
-              <span className="absolute inset-0 rounded-full bg-champagne/14 blur-md" />
+              <span className="absolute inset-0 rounded-full bg-champagne/[0.14] blur-md" />
               <span className="font-display text-[15px] italic text-champagne-deep">V</span>
             </span>
             <span className="hidden flex-col leading-none sm:flex">
@@ -75,7 +75,7 @@ export function Nav() {
           <nav
             className={cn(
               "hidden items-center gap-1 rounded-full px-2 py-2 transition-all duration-700 ease-luxe lg:flex",
-              condensed && "glass glass-edge rounded-full",
+              condensed && "glass glass-edge glass-heavy rounded-full",
             )}
           >
             {LINKS.map((link) => (
@@ -142,7 +142,7 @@ export function Nav() {
         initial={false}
         animate={mobileOpen ? { opacity: 1, pointerEvents: "auto" } : { opacity: 0, pointerEvents: "none" }}
         transition={{ duration: 0.5, ease: LUXE_EASE }}
-        className="fixed inset-0 z-40 bg-canvas/96 backdrop-blur-2xl lg:hidden"
+        className="fixed inset-0 z-40 bg-canvas/[0.96] backdrop-blur-2xl lg:hidden"
       >
         <nav className="flex h-full flex-col items-start justify-center gap-2 px-10">
           {LINKS.map((link, i) => (

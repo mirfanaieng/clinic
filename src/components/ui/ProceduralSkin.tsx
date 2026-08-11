@@ -1,7 +1,8 @@
 "use client";
 
-import { useId } from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { dermalTile } from "@/lib/texture";
 
 type Props = {
   /** Base hue in degrees — ties the surface to its treatment. */
@@ -12,12 +13,17 @@ type Props = {
   detail?: number;
   seed?: number;
   className?: string;
+  /** Adds a slow compositor-only drift. Never touches the main thread. */
   animate?: boolean;
 };
 
 /**
- * Dermal surface synthesised entirely in SVG — fractal turbulence for pore
- * structure, displaced lighting for relief, no image assets required.
+ * Dermal surface built from a cached relief tile blended over a hue gradient.
+ *
+ * The relief itself is generated once per (roughness, detail, seed) bucket and
+ * served from the image cache — see `@/lib/texture`. Everything here is a plain
+ * painted div, so a hover, a drag or a clip-path sweep repaints in microseconds
+ * instead of re-running a fractal noise graph.
  *
  * Drop real photography or video in wherever this is used; the API is the same
  * shape, this is what renders until you do.
@@ -30,12 +36,7 @@ export function ProceduralSkin({
   className,
   animate = false,
 }: Props) {
-  const id = useId().replace(/:/g, "");
-
-  const base = 0.012 + roughness * 0.05;
-  const freq = base * detail;
-  const octaves = Math.round(3 + roughness * 3);
-  const relief = 6 + roughness * 26;
+  const tile = useMemo(() => dermalTile(roughness, detail, seed), [roughness, detail, seed]);
 
   /* Lightness stays broadly constant across the roughness range. If tone
      tracked roughness, the before/after pair would differ mainly in brightness
@@ -45,84 +46,41 @@ export function ProceduralSkin({
   const mid = `hsl(${hue} ${32 + roughness * 10}% ${58 - roughness * 10}%)`;
   const shadow = `hsl(${hue + 8} ${26 + roughness * 8}% ${36 - roughness * 8}%)`;
 
+  // Coarse surfaces show more of the relief map; smooth ones only whisper it.
+  const reliefOpacity = 0.38 + roughness * 0.42;
+  // Micro view zooms the pores right in, matching the old `detail` behaviour.
+  const scale = 260 / Math.max(0.25, detail);
+
   return (
-    <svg
-      className={cn("h-full w-full", className)}
-      viewBox="0 0 600 800"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden
-    >
-      <defs>
-        <linearGradient id={`grad-${id}`} x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0%" stopColor={light} />
-          <stop offset="45%" stopColor={mid} />
-          <stop offset="100%" stopColor={shadow} />
-        </linearGradient>
+    <div aria-hidden className={cn("absolute inset-0 overflow-hidden", className)}>
+      {/* Base tone */}
+      <div
+        className="absolute inset-0"
+        style={{ background: `linear-gradient(155deg, ${light} 0%, ${mid} 45%, ${shadow} 100%)` }}
+      />
 
-        <filter id={`derm-${id}`} x="-10%" y="-10%" width="120%" height="120%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency={`${freq} ${freq * 1.35}`}
-            numOctaves={octaves}
-            seed={seed}
-            result="noise"
-          >
-            {animate && (
-              <animate
-                attributeName="baseFrequency"
-                dur="26s"
-                values={`${freq} ${freq * 1.35};${freq * 1.18} ${freq * 1.5};${freq} ${freq * 1.35}`}
-                repeatCount="indefinite"
-              />
-            )}
-          </feTurbulence>
+      {/* Relief. `soft-light` over the gradient sculpts pores without shifting
+          the hue; the transform drift is compositor-only, so an always-on
+          animation here costs the main thread nothing. */}
+      <div
+        className={cn("absolute -inset-[6%]", animate && "animate-skin-drift")}
+        style={{
+          backgroundImage: `url("${tile}")`,
+          backgroundSize: `${scale}px ${scale}px`,
+          backgroundRepeat: "repeat",
+          mixBlendMode: "soft-light",
+          opacity: reliefOpacity,
+        }}
+      />
 
-          {/* Push the gradient around by the noise field to sculpt pores. */}
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="noise"
-            scale={relief}
-            xChannelSelector="R"
-            yChannelSelector="G"
-            result="displaced"
-          />
-
-          {/* Relight the displaced surface so relief actually reads. */}
-          <feDiffuseLighting
-            in="noise"
-            surfaceScale={1.4 + roughness * 2.6}
-            diffuseConstant={0.85}
-            lightingColor="#ffffff"
-            result="lit"
-          >
-            <feDistantLight azimuth={225} elevation={58} />
-          </feDiffuseLighting>
-
-          {/* Multiply the lighting pass into the gradient (k1 is the in1*in2
-              term). Adding it instead — as a dark theme wants — pushes every
-              value toward white, which on an ivory page erases the surface
-              completely. The small k3 term keeps the shadows from crushing. */}
-          <feComposite
-            in="lit"
-            in2="displaced"
-            operator="arithmetic"
-            k1="0.9"
-            k2="0"
-            k3="0.22"
-            k4="0"
-          />
-          <feGaussianBlur stdDeviation={0.4 + (1 - roughness) * 1.1} />
-        </filter>
-
-        {/* Falls off to ivory, not black — the surfaces sit on a light page. */}
-        <radialGradient id={`vig-${id}`} cx="50%" cy="42%" r="80%">
-          <stop offset="58%" stopColor="#FBF8F4" stopOpacity="0" />
-          <stop offset="100%" stopColor="#FBF8F4" stopOpacity="0.45" />
-        </radialGradient>
-      </defs>
-
-      <rect width="600" height="800" fill={`url(#grad-${id})`} filter={`url(#derm-${id})`} />
-      <rect width="600" height="800" fill={`url(#vig-${id})`} />
-    </svg>
+      {/* Falls off to ivory, not black — the surfaces sit on a light page. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(80% 80% at 50% 42%, transparent 58%, rgba(251,248,244,0.45) 100%)",
+        }}
+      />
+    </div>
   );
 }

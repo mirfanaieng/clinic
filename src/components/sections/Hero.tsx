@@ -125,7 +125,7 @@ export function Hero() {
             </div>
 
             {/* Real-time slot indicator */}
-            <div className="flex items-center gap-2.5 rounded-full border border-champagne/45 bg-champagne/16 px-4 py-2.5 sm:ml-2">
+            <div className="flex items-center gap-2.5 rounded-full border border-champagne/45 bg-champagne/[0.16] px-4 py-2.5 sm:ml-2">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-pulse-slot rounded-full bg-champagne" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-champagne" />
@@ -164,7 +164,7 @@ export function Hero() {
         style={{ opacity: contentOpacity }}
         className="glass glass-edge absolute bottom-8 right-6 z-10 hidden items-center gap-3 rounded-full py-2.5 pl-3 pr-5 lg:right-10 lg:flex"
       >
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-champagne/16 text-champagne-deep">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-champagne/[0.16] text-champagne-deep">
           <CalendarCheck className="h-3.5 w-3.5" strokeWidth={1.5} />
         </span>
         <span className="flex flex-col leading-tight">

@@ -71,11 +71,26 @@
 
 @layer components {
   /* Frosted white on ivory. On a light page the depth cue has to come from
-     the shadow and the bright top edge, not from a translucent dark fill. */
+     the shadow and the bright top edge, not from a translucent dark fill.
+
+     There is deliberately no `backdrop-filter` here. It forces the compositor
+     to snapshot everything behind the element and blur it again whenever
+     either layer moves, and this class sits on ~40 nodes — including the hero
+     action bar, whose backdrop is a WebGL canvas redrawing 60 times a second.
+     Nearly all of them sit on flat ivory, where a blurred backdrop and an
+     unblurred one are indistinguishable; the fill, the bright top edge and the
+     shadow are what actually sell the frost. Overlays with real content moving
+     underneath opt into `.glass-heavy`. */
   .glass {
-    @apply relative border border-white/80 bg-white/65 backdrop-blur-2xl;
+    @apply relative border border-white/80 bg-white/75;
     box-shadow: 0 24px 70px -30px rgba(90, 66, 45, 0.28),
       0 2px 10px -4px rgba(90, 66, 45, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  }
+
+  /* For drawers, the mobile sheet and the condensed nav — the few places with
+     real page content passing underneath. */
+  .glass-heavy {
+    @apply backdrop-blur-2xl;
   }
 
   /* Solid card for content that needs to stay readable over busy backdrops. */
@@ -109,6 +124,16 @@
   .glass-edge:hover::after,
   .glass-edge[data-active="true"]::after {
     opacity: 1;
+  }
+
+  /* Soft section glow.
+     Previously these were solid circles under `filter: blur(130px)`, which
+     makes the compositor allocate an oversized offscreen buffer and run a
+     multi-pass gaussian over it. A radial gradient is the same picture in a
+     single paint, with no filter and no buffer. */
+  .glow {
+    @apply pointer-events-none absolute;
+    background: radial-gradient(closest-side, var(--glow) 0%, transparent 100%);
   }
 
   .text-gradient-gold {

@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { AdaptiveDpr, PerformanceMonitor } from "@react-three/drei";
+import { PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
+import { useInViewport } from "@/lib/useInViewport";
 import {
   CELL_FRAGMENT,
   CELL_VERTEX,
@@ -62,7 +63,11 @@ function SilkSurface() {
 
   return (
     <mesh ref={mesh} position={[0, -0.35, 0]} rotation={[-0.42, 0, 0]}>
-      <planeGeometry args={[13, 8, 110, 72]} />
+      {/* 64x40 rather than 110x72. The vertex stage evaluates two simplex
+          octaves three times over per vertex for the normals, so segment count
+          is the single most expensive number in this scene — and at this
+          amplitude the extra tessellation was not visible. */}
+      <planeGeometry args={[13, 8, 64, 40]} />
       <shaderMaterial
         ref={material}
         uniforms={uniforms}
@@ -78,7 +83,7 @@ function SilkSurface() {
 
 /* ---------------------------------------------------------- cellular field */
 
-function CellularField({ count = 230 }: { count?: number }) {
+function CellularField({ count = 150 }: { count?: number }) {
   const material = useRef<THREE.ShaderMaterial>(null);
 
   const { positions, scales, seeds } = useMemo(() => {
@@ -164,7 +169,7 @@ function Nucleus() {
 
   return (
     <mesh ref={ref} position={[2.15, -0.15, -3.4]} scale={0.78}>
-      <torusKnotGeometry args={[1.05, 0.055, 120, 10, 2, 3]} />
+      <torusKnotGeometry args={[1.05, 0.055, 64, 6, 2, 3]} />
       <meshBasicMaterial
         color={GOLD}
         transparent
@@ -191,24 +196,36 @@ function Scene() {
 }
 
 export default function HeroCanvas({ className }: { className?: string }) {
+  const { ref, active } = useInViewport<HTMLDivElement>("120px");
+  // Starts at 1 and is allowed up to 1.5 only once the scene proves it can
+  // hold framerate — the reverse of shipping a retina buffer and hoping.
+  const [dpr, setDpr] = useState(1);
+
   return (
-    <Canvas
-      className={className}
-      dpr={[1, 1.5]}
-      gl={{
-        antialias: true,
-        alpha: false,
-        powerPreference: "high-performance",
-      }}
-      camera={{ position: [0, 0.35, 6.4], fov: 42, near: 0.1, far: 24 }}
-      // The canvas is decorative; pointer events belong to the UI above it.
-      style={{ pointerEvents: "none" }}
-      eventSource={typeof document !== "undefined" ? document.body : undefined}
-      eventPrefix="client"
-    >
-      <PerformanceMonitor />
-      <AdaptiveDpr pixelated={false} />
-      <Scene />
-    </Canvas>
+    <div ref={ref} className={className}>
+      <Canvas
+        className="!absolute inset-0"
+        dpr={dpr}
+        // Parked entirely while the hero is off screen. Nothing below the fold
+        // needs this scene to keep drawing.
+        frameloop={active ? "always" : "never"}
+        gl={{
+          antialias: false,
+          alpha: false,
+          powerPreference: "high-performance",
+        }}
+        camera={{ position: [0, 0.35, 6.4], fov: 42, near: 0.1, far: 24 }}
+        // The canvas is decorative; pointer events belong to the UI above it.
+        style={{ pointerEvents: "none" }}
+        eventSource={typeof document !== "undefined" ? document.body : undefined}
+        eventPrefix="client"
+      >
+        <PerformanceMonitor
+          onIncline={() => setDpr(Math.min(1.5, window.devicePixelRatio))}
+          onDecline={() => setDpr(1)}
+        />
+        <Scene />
+      </Canvas>
+    </div>
   );
 }

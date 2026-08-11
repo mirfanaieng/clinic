@@ -26,7 +26,10 @@ export function Footer() {
 
   return (
     <footer className="relative overflow-hidden border-t border-ink/[0.09] pt-28">
-      <div className="pointer-events-none absolute -bottom-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-champagne/[0.11] blur-[140px]" />
+      <div
+        className="glow -bottom-40 left-1/2 h-[640px] w-[1040px] -translate-x-1/2"
+        style={{ "--glow": "rgba(201,162,39,0.14)" } as React.CSSProperties}
+      />
 
       <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10">
         {/* Closing call */}

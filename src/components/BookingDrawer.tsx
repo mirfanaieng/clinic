@@ -126,7 +126,7 @@ function StepProtocol({
             data-active={active}
             className={cn(
               "glass glass-edge group flex items-start gap-3.5 rounded-2xl p-4 text-left transition-colors duration-500",
-              active ? "border-champagne/60 bg-champagne/16" : "hover:bg-canvas-warm/70",
+              active ? "border-champagne/60 bg-champagne/[0.16]" : "hover:bg-canvas-warm/70",
             )}
           >
             <span
@@ -202,7 +202,7 @@ function StepSchedule({
                   "relative flex h-[86px] w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border transition-colors duration-500",
                   closed && "cursor-not-allowed opacity-25",
                   active
-                    ? "border-champagne/70 bg-champagne/16"
+                    ? "border-champagne/70 bg-champagne/[0.16]"
                     : "border-ink/10 bg-white/70 hover:border-ink/15",
                 )}
               >
@@ -421,7 +421,10 @@ export function BookingDrawer() {
                 className="fixed inset-y-0 right-0 z-[101] flex w-full max-w-[620px] flex-col border-l border-ink/10 bg-canvas/95 backdrop-blur-2xl"
               >
                 {/* Ambient wash */}
-                <div className="pointer-events-none absolute -left-24 top-1/4 h-96 w-96 rounded-full bg-champagne/16 blur-[110px]" />
+                <div
+                  className="glow -left-24 top-1/4 h-[520px] w-[520px]"
+                  style={{ "--glow": "rgba(201,162,39,0.2)" } as React.CSSProperties}
+                />
 
                 {/* Header */}
                 <div className="relative flex items-start justify-between gap-6 border-b border-ink/[0.09] px-7 py-6 sm:px-9">
@@ -497,7 +500,7 @@ export function BookingDrawer() {
                           initial={{ scale: 0, rotate: -45 }}
                           animate={{ scale: 1, rotate: 0 }}
                           transition={{ duration: 0.8, ease: LUXE_EASE, delay: 0.1 }}
-                          className="relative grid h-20 w-20 place-items-center rounded-full border border-champagne/55 bg-champagne/14"
+                          className="relative grid h-20 w-20 place-items-center rounded-full border border-champagne/55 bg-champagne/[0.14]"
                         >
                           <span className="absolute inset-0 animate-pulse-slot rounded-full bg-champagne/25 blur-xl" />
                           <Check className="h-8 w-8 text-champagne-deep" strokeWidth={1.2} />

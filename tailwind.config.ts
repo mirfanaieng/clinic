@@ -77,11 +77,17 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        /* Transform only — runs on the compositor, never the main thread. */
+        "skin-drift": {
+          "0%, 100%": { transform: "translate3d(0,0,0) scale(1)" },
+          "50%": { transform: "translate3d(-1.5%, 1%, 0) scale(1.05)" },
+        },
       },
       animation: {
         shimmer: "shimmer 2.4s cubic-bezier(0.22,1,0.36,1) infinite",
         "pulse-slot": "pulse-slot 2s ease-in-out infinite",
         "float-slow": "float-slow 7s ease-in-out infinite",
+        "skin-drift": "skin-drift 24s ease-in-out infinite",
       },
     },
   },

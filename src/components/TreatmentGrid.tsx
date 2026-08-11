@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import {
-  AnimatePresence,
-  motion,
-  useMotionTemplate,
-  useMotionValue,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowUpRight, Clock, Volume2, VolumeX, Waves } from "lucide-react";
 import { CATEGORIES, TREATMENTS, type Treatment, type TreatmentCategory } from "@/lib/data";
 import { LUXE_EASE, viewportOnce } from "@/lib/motion";
@@ -42,10 +35,19 @@ function TreatmentCard({ treatment, index }: { treatment: Treatment; index: numb
   const mediaZ = useTransform(depth, [0, 1], [0, 34]);
   const textZ = useTransform(depth, [0, 1], [0, 62]);
 
-  // Glare follows the pointer across the glass.
-  const glareX = useTransform(px, [-0.5, 0.5], ["18%", "82%"]);
-  const glareY = useTransform(py, [-0.5, 0.5], ["18%", "82%"]);
-  const glare = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.55), transparent 45%)`;
+  /* Glare follows the pointer across the glass. It is a fixed blob that gets
+     translated, rather than a `radial-gradient(circle at X% Y%)` rebuilt each
+     move — a gradient whose position changes has to be repainted across the
+     whole card on the main thread, while a transform is handed to the
+     compositor and costs nothing. */
+  const glareX = useSpring(useTransform(px, [-0.5, 0.5], ["-22%", "22%"]), {
+    stiffness: 140,
+    damping: 22,
+  });
+  const glareY = useSpring(useTransform(py, [-0.5, 0.5], ["-22%", "22%"]), {
+    stiffness: 140,
+    damping: 22,
+  });
 
   const handleMove = (e: React.PointerEvent<HTMLElement>) => {
     const rect = ref.current?.getBoundingClientRect();
@@ -126,13 +128,21 @@ function TreatmentCard({ treatment, index }: { treatment: Treatment; index: numb
           />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/82 to-white/10" />
-        <motion.div style={{ background: glare }} className="absolute inset-0 opacity-70" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/[0.82] to-white/10" />
+        <motion.div
+          style={{
+            x: glareX,
+            y: glareY,
+            background:
+              "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.55), transparent 45%)",
+          }}
+          className="pointer-events-none absolute -inset-[18%] opacity-70"
+        />
       </motion.div>
 
       {/* Top rail */}
       <div className="absolute inset-x-7 top-7 flex items-start justify-between gap-3">
-        <span className="rounded-full border border-ink/10 bg-canvas-warm/70 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-ink-soft backdrop-blur-md">
+        <span className="rounded-full border border-ink/10 bg-canvas-warm/[0.88] px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-ink-soft">
           {CATEGORIES.find((c) => c.id === treatment.category)?.label}
         </span>
 
@@ -143,7 +153,7 @@ function TreatmentCard({ treatment, index }: { treatment: Treatment; index: numb
             data-cursor="link"
             animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0.8 }}
             transition={{ duration: 0.4, ease: LUXE_EASE }}
-            className="grid h-9 w-9 place-items-center rounded-full border border-ink/12 bg-white/72 text-ink backdrop-blur-md transition-colors hover:border-champagne/70 hover:text-champagne-deep"
+            className="grid h-9 w-9 place-items-center rounded-full border border-ink/[0.12] bg-white/[0.88] text-ink transition-colors hover:border-champagne/70 hover:text-champagne-deep"
           >
             {muted ? (
               <VolumeX className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -200,7 +210,7 @@ function TreatmentCard({ treatment, index }: { treatment: Treatment; index: numb
               openBooking(treatment.id);
             }}
             data-cursor="link"
-            className="inline-flex items-center gap-2 rounded-full border border-ink/12 px-4 py-2.5 text-[12px] text-ink transition-all duration-500 ease-luxe hover:border-champagne hover:bg-ink hover:text-canvas"
+            className="inline-flex items-center gap-2 rounded-full border border-ink/[0.12] px-4 py-2.5 text-[12px] text-ink transition-all duration-500 ease-luxe hover:border-champagne hover:bg-ink hover:text-canvas"
           >
             Reserve
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.6} />
@@ -224,7 +234,10 @@ export function TreatmentGrid() {
   return (
     <section id="treatments" className="relative py-32 lg:py-44">
       {/* Section glow */}
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[880px] -translate-x-1/2 rounded-full bg-champagne/[0.10] blur-[130px]" />
+      <div
+        className="glow left-1/2 top-0 h-[640px] w-[1000px] -translate-x-1/2"
+        style={{ "--glow": "rgba(201,162,39,0.13)" } as React.CSSProperties}
+      />
 
       <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10">
         <SectionHeading
