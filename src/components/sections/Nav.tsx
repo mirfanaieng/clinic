@@ -83,7 +83,6 @@ export function Nav() {
                 key={link.href}
                 onClick={() => go(link.href)}
                 data-cursor="link"
-                data-cursor-magnet="0.4"
                 className="relative rounded-full px-4 py-2 text-[13px] text-ink-soft transition-colors duration-500 hover:text-ink"
               >
                 {link.label}

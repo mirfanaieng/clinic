@@ -54,11 +54,22 @@
     border-radius: 99px;
   }
 
-  /* The custom cursor replaces the native one on precise pointers only. */
+  /* The custom cursor replaces the native one on precise pointers only, and
+     only once the component has confirmed it is tracking the pointer — the
+     class is added on the first move, never at mount. */
   @media (pointer: fine) {
     html.has-custom-cursor,
     html.has-custom-cursor * {
       cursor: none !important;
+    }
+
+    /* Typing needs a real caret. These selectors carry one more element than
+       the rule above, so they win without another `!important` fight. */
+    html.has-custom-cursor input,
+    html.has-custom-cursor textarea,
+    html.has-custom-cursor select,
+    html.has-custom-cursor [contenteditable="true"] {
+      cursor: auto !important;
     }
   }
 
@@ -134,6 +145,119 @@
   .glow {
     @apply pointer-events-none absolute;
     background: radial-gradient(closest-side, var(--glow) 0%, transparent 100%);
+  }
+
+  /* ------------------------------------------------------------- cursor --
+     Sizing is done with `transform: scale()` on a fixed 40px ring rather than
+     by animating width/height, so a mode change is a compositor job and never
+     triggers layout. Each state sets the whole transform explicitly — deriving
+     it from a custom property reads better but unregistered custom properties
+     do not interpolate, and the ring would snap instead of easing. */
+  .cursor-root {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.25s ease;
+  }
+  .cursor-root[data-visible="false"] {
+    opacity: 0;
+  }
+
+  /* Carries position only; JS writes translate3d here. */
+  .cursor-layer {
+    position: fixed;
+    left: 0;
+    top: 0;
+    will-change: transform;
+  }
+
+  .cursor-ring {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 40px;
+    width: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 999px;
+    border: 1px solid rgba(31, 26, 23, 0.24);
+    background-color: rgba(201, 162, 39, 0);
+    transform: scale(0.85);
+    transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.34s ease, background-color 0.34s ease;
+  }
+
+  /* The dot marks exactly where the click lands. It stays put in every mode
+     except text, where the native caret takes over. */
+  .cursor-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 6px;
+    width: 6px;
+    margin: -3px 0 0 -3px;
+    border-radius: 999px;
+    background: #1f1a17;
+    transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cursor-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, 24px);
+    white-space: nowrap;
+    border-radius: 999px;
+    border: 1px solid rgba(31, 26, 23, 0.1);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 4px 9px;
+    font-size: 9px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #1f1a17;
+    opacity: 0;
+    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cursor-root[data-has-label="true"] .cursor-label {
+    opacity: 1;
+    transform: translate(-50%, 30px);
+  }
+
+  /* Interactive: ring opens up and warms to champagne. */
+  .cursor-root[data-mode="link"] .cursor-ring {
+    transform: scale(1.25);
+    border-color: rgba(138, 109, 20, 0.7);
+    background-color: rgba(201, 162, 39, 0.08);
+  }
+  .cursor-root[data-mode="view"] .cursor-ring,
+  .cursor-root[data-mode="drag"] .cursor-ring {
+    transform: scale(1.5);
+    border-color: rgba(138, 109, 20, 0.85);
+    background-color: rgba(201, 162, 39, 0.12);
+  }
+
+  .cursor-root[data-mode="text"] .cursor-ring,
+  .cursor-root[data-mode="text"] .cursor-dot {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  /* Press feedback — the ring contracts around the dot. */
+  .cursor-root[data-pressed="true"] .cursor-ring {
+    transform: scale(0.66);
+  }
+  .cursor-root[data-pressed="true"][data-mode="link"] .cursor-ring {
+    transform: scale(1.05);
+  }
+  .cursor-root[data-pressed="true"][data-mode="view"] .cursor-ring,
+  .cursor-root[data-pressed="true"][data-mode="drag"] .cursor-ring {
+    transform: scale(1.28);
+  }
+  .cursor-root[data-pressed="true"] .cursor-dot {
+    transform: scale(1.5);
   }
 
   .text-gradient-gold {

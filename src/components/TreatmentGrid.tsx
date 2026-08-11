@@ -99,7 +99,6 @@ function TreatmentCard({ treatment, index }: { treatment: Treatment; index: numb
       style={{ rotateX, rotateY, transformPerspective: 1100 }}
       data-cursor="view"
       data-cursor-label="Protocol"
-      data-cursor-magnet="0.12"
       data-active={hovered}
       className="glass glass-edge group relative flex min-h-[420px] flex-col justify-end overflow-hidden rounded-[26px] p-7 preserve-3d"
     >
@@ -262,7 +261,6 @@ export function TreatmentGrid() {
                 key={cat.id}
                 onClick={() => setFilter(cat.id)}
                 data-cursor="link"
-                data-cursor-magnet="0.45"
                 className={cn(
                   "relative whitespace-nowrap rounded-full px-4 py-2.5 text-[12px] transition-colors duration-500",
                   filter === cat.id ? "text-canvas" : "text-ink-soft hover:text-ink",

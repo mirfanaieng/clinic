@@ -99,7 +99,6 @@ export function Footer() {
                   <li key={link}>
                     <button
                       data-cursor="link"
-                      data-cursor-magnet="0.35"
                       className="group relative text-[13px] text-ink-soft transition-colors duration-500 hover:text-ink"
                     >
                       {link}
